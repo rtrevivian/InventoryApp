@@ -33,19 +33,22 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.example.richard.inventoryapp.data.PetContract.PetEntry;
+import com.example.richard.inventoryapp.data.CakeContract;
+import com.example.richard.inventoryapp.data.CakeContract.CakeEntry;
+
+import java.text.DecimalFormat;
 
 /**
- * Displays list of pets that were entered and stored in the app.
+ * Displays list of cakes that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
-    /** Identifier for the pet data loader */
-    private static final int PET_LOADER = 0;
+    /** Identifier for the cake data loader */
+    private static final int CAKE_LOADER = 0;
 
     /** Adapter for the ListView */
-    PetCursorAdapter mCursorAdapter;
+    CakeCursorAdapter mCursorAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,69 +65,73 @@ public class CatalogActivity extends AppCompatActivity implements
             }
         });
 
-        // Find the ListView which will be populated with the pet data
-        ListView petListView = (ListView) findViewById(R.id.list);
+        // Find the ListView which will be populated with the cake data
+        ListView cakeListView = (ListView) findViewById(R.id.list);
 
         // Find and set empty view on the ListView, so that it only shows when the list has 0 items.
         View emptyView = findViewById(R.id.empty_view);
-        petListView.setEmptyView(emptyView);
+        cakeListView.setEmptyView(emptyView);
 
-        // Setup an Adapter to create a list item for each row of pet data in the Cursor.
-        // There is no pet data yet (until the loader finishes) so pass in null for the Cursor.
-        mCursorAdapter = new PetCursorAdapter(this, null);
-        petListView.setAdapter(mCursorAdapter);
+        // Setup an Adapter to create a list item for each row of cake data in the Cursor.
+        // There is no cake data yet (until the loader finishes) so pass in null for the Cursor.
+        mCursorAdapter = new CakeCursorAdapter(this, null);
+        cakeListView.setAdapter(mCursorAdapter);
 
         // Setup the item click listener
-        petListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        cakeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 // Create new intent to go to {@link EditorActivity}
                 Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
 
-                // Form the content URI that represents the specific pet that was clicked on,
+                // Form the content URI that represents the specific cake that was clicked on,
                 // by appending the "id" (passed as input to this method) onto the
-                // {@link PetEntry#CONTENT_URI}.
-                // For example, the URI would be "content://com.example.richard.inventoryapp/pets/2"
-                // if the pet with ID 2 was clicked on.
-                Uri currentPetUri = ContentUris.withAppendedId(PetEntry.CONTENT_URI, id);
+                // {@link CakeEntry#CONTENT_URI}.
+                // For example, the URI would be "content://com.example.richard.inventoryapp/cakes/2"
+                // if the cake with ID 2 was clicked on.
+                Uri currentUri = ContentUris.withAppendedId(CakeEntry.CONTENT_URI, id);
 
                 // Set the URI on the data field of the intent
-                intent.setData(currentPetUri);
+                intent.setData(currentUri);
 
-                // Launch the {@link EditorActivity} to display the data for the current pet.
+                // Launch the {@link EditorActivity} to display the data for the current cake.
                 startActivity(intent);
             }
         });
 
         // Kick off the loader
-        getLoaderManager().initLoader(PET_LOADER, null, this);
+        getLoaderManager().initLoader(CAKE_LOADER, null, this);
     }
 
     /**
-     * Helper method to insert hardcoded pet data into the database. For debugging purposes only.
+     * Helper method to insert hardcoded cake data into the database. For debugging purposes only.
      */
-    private void insertPet() {
+    private void insertCake() {
+
+        DecimalFormat df = new DecimalFormat("#.00");
+        String price = df.format(7.9594);
+
         // Create a ContentValues object where column names are the keys,
-        // and Toto's pet attributes are the values.
+        // and Toto's cake attributes are the values.
         ContentValues values = new ContentValues();
-        values.put(PetEntry.COLUMN_PET_NAME, "Toto");
-        values.put(PetEntry.COLUMN_PET_BREED, "Terrier");
-        values.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
-        values.put(PetEntry.COLUMN_PET_WEIGHT, 7);
+        values.put(CakeEntry.COLUMN_CAKE_NAME, "Racing Car");
+        values.put(CakeContract.CakeEntry.COLUMN_CAKE_QUANTITY, 10);
+        values.put(CakeEntry.COLUMN_CAKE_OCCASION, CakeEntry.OCCASION_BIRTHDAY);
+        values.put(CakeContract.CakeEntry.COLUMN_CAKE_PRICE, price);
 
         // Insert a new row for Toto into the provider using the ContentResolver.
-        // Use the {@link PetEntry#CONTENT_URI} to indicate that we want to insert
-        // into the pets database table.
+        // Use the {@link CakeEntry#CONTENT_URI} to indicate that we want to insert
+        // into the cakes database table.
         // Receive the new content URI that will allow us to access Toto's data in the future.
-        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+        Uri newUri = getContentResolver().insert(CakeEntry.CONTENT_URI, values);
     }
 
     /**
-     * Helper method to delete all pets in the database.
+     * Helper method to delete all cakes in the database.
      */
-    private void deleteAllPets() {
-        int rowsDeleted = getContentResolver().delete(PetEntry.CONTENT_URI, null, null);
-        Log.v("CatalogActivity", rowsDeleted + " rows deleted from pet database");
+    private void deleteAllCakes() {
+        int rowsDeleted = getContentResolver().delete(CakeEntry.CONTENT_URI, null, null);
+        Log.v("CatalogActivity", rowsDeleted + " rows deleted from cake database");
     }
 
     @Override
@@ -141,11 +148,11 @@ public class CatalogActivity extends AppCompatActivity implements
         switch (item.getItemId()) {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
-                insertPet();
+                insertCake();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
-                deleteAllPets();
+                deleteAllCakes();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -155,13 +162,16 @@ public class CatalogActivity extends AppCompatActivity implements
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         // Define a projection that specifies the columns from the table we care about.
         String[] projection = {
-                PetEntry._ID,
-                PetEntry.COLUMN_PET_NAME,
-                PetEntry.COLUMN_PET_BREED };
+                CakeEntry._ID,
+                CakeEntry.COLUMN_CAKE_NAME,
+                CakeEntry.COLUMN_CAKE_QUANTITY,
+                CakeEntry.COLUMN_CAKE_OCCASION,
+                CakeEntry.COLUMN_CAKE_PRICE
+        };
 
         // This loader will execute the ContentProvider's query method on a background thread
         return new CursorLoader(this,   // Parent activity context
-                PetEntry.CONTENT_URI,   // Provider content URI to query
+                CakeEntry.CONTENT_URI,   // Provider content URI to query
                 projection,             // Columns to include in the resulting Cursor
                 null,                   // No selection clause
                 null,                   // No selection arguments
@@ -170,7 +180,7 @@ public class CatalogActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        // Update {@link PetCursorAdapter} with this new cursor containing updated pet data
+        // Update {@link CakeCursorAdapter} with this new cursor containing updated cake data
         mCursorAdapter.swapCursor(data);
     }
 

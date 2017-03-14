@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- These are the options displayed in the gender drop-down Spinner -->
-    <string-array name="array_gender_options">
-        <item>@string/gender_unknown</item>
-        <item>@string/gender_male</item>
-        <item>@string/gender_female</item>
+    <!-- These are the options displayed in the type drop-down Spinner -->
+    <string-array name="array_type_options">
+        <item>@string/occasion_unknown</item>
+        <item>@string/occasion_birthday</item>
+        <item>@string/occasion_wedding</item>
     </string-array>
 
 </resources>

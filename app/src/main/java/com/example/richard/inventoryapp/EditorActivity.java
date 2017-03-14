@@ -38,50 +38,50 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.example.richard.inventoryapp.data.PetContract.PetEntry;
+import com.example.richard.inventoryapp.data.CakeContract;
+import com.example.richard.inventoryapp.data.CakeContract.CakeEntry;
 
 /**
- * Allows user to create a new pet or edit an existing one.
+ * Allows user to create a new cake or edit an existing one.
  */
 public class EditorActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
-    /** Identifier for the pet data loader */
-    private static final int EXISTING_PET_LOADER = 0;
+    /** Identifier for the cake data loader */
+    private static final int EXISTING_CAKE_LOADER = 0;
 
-    /** Content URI for the existing pet (null if it's a new pet) */
-    private Uri mCurrentPetUri;
+    /** Content URI for the existing cake (null if it's a new cake) */
+    private Uri mCurrentCakeUri;
 
-    /** EditText field to enter the pet's name */
+    /** EditText field to enter the cake's name */
     private EditText mNameEditText;
 
-    /** EditText field to enter the pet's breed */
-    private EditText mBreedEditText;
+    /** EditText field to enter the cake's quantity */
+    private EditText mQuantityEditText;
 
-    /** EditText field to enter the pet's weight */
-    private EditText mWeightEditText;
+    /** EditText field to enter the cake's price */
+    private EditText mPriceEditText;
 
-    /** EditText field to enter the pet's gender */
-    private Spinner mGenderSpinner;
+    /** EditText field to enter the cake's type */
+    private Spinner mOccasionSpinner;
 
     /**
-     * Gender of the pet. The possible valid values are in the PetContract.java file:
-     * {@link PetEntry#GENDER_UNKNOWN}, {@link PetEntry#GENDER_MALE}, or
-     * {@link PetEntry#GENDER_FEMALE}.
+     * Type of the cake. The possible valid values are in the CakeContract.java file:
+     * {@link CakeEntry#OCCASION_UNKNOWN}, {@link CakeEntry#OCCASION_BIRTHDAY} or {@link CakeEntry#OCCASION_WEDDING}.
      */
-    private int mGender = PetEntry.GENDER_UNKNOWN;
+    private int mType = CakeContract.CakeEntry.OCCASION_UNKNOWN;
 
-    /** Boolean flag that keeps track of whether the pet has been edited (true) or not (false) */
-    private boolean mPetHasChanged = false;
+    /** Boolean flag that keeps track of whether the cake has been edited (true) or not (false) */
+    private boolean mCakeHasChanged = false;
 
     /**
      * OnTouchListener that listens for any user touches on a View, implying that they are modifying
-     * the view, and we change the mPetHasChanged boolean to true.
+     * the view, and we change the mCakeHasChanged boolean to true.
      */
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
-            mPetHasChanged = true;
+            mCakeHasChanged = true;
             return false;
         }
     };
@@ -92,72 +92,72 @@ public class EditorActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_editor);
 
         // Examine the intent that was used to launch this activity,
-        // in order to figure out if we're creating a new pet or editing an existing one.
+        // in order to figure out if we're creating a new cake or editing an existing one.
         Intent intent = getIntent();
-        mCurrentPetUri = intent.getData();
+        mCurrentCakeUri = intent.getData();
 
-        // If the intent DOES NOT contain a pet content URI, then we know that we are
-        // creating a new pet.
-        if (mCurrentPetUri == null) {
-            // This is a new pet, so change the app bar to say "Add a Pet"
-            setTitle(getString(R.string.editor_activity_title_new_pet));
+        // If the intent DOES NOT contain a cake content URI, then we know that we are
+        // creating a new cake.
+        if (mCurrentCakeUri == null) {
+            // This is a new cake, so change the app bar to say "Add a Cake"
+            setTitle(getString(R.string.editor_activity_title_new_cake));
 
             // Invalidate the options menu, so the "Delete" menu option can be hidden.
-            // (It doesn't make sense to delete a pet that hasn't been created yet.)
+            // (It doesn't make sense to delete a cake that hasn't been created yet.)
             invalidateOptionsMenu();
         } else {
-            // Otherwise this is an existing pet, so change app bar to say "Edit Pet"
-            setTitle(getString(R.string.editor_activity_title_edit_pet));
+            // Otherwise this is an existing cake, so change app bar to say "Edit Cake"
+            setTitle(getString(R.string.editor_activity_title_edit_cake));
 
-            // Initialize a loader to read the pet data from the database
+            // Initialize a loader to read the cake data from the database
             // and display the current values in the editor
-            getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
+            getLoaderManager().initLoader(EXISTING_CAKE_LOADER, null, this);
         }
 
         // Find all relevant views that we will need to read user input from
-        mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
-        mBreedEditText = (EditText) findViewById(R.id.edit_pet_breed);
-        mWeightEditText = (EditText) findViewById(R.id.edit_pet_weight);
-        mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
+        mNameEditText = (EditText) findViewById(R.id.edit_cake_name);
+        mQuantityEditText = (EditText) findViewById(R.id.edit_cake_breed);
+        mPriceEditText = (EditText) findViewById(R.id.edit_cake_weight);
+        mOccasionSpinner = (Spinner) findViewById(R.id.spinner_cake_occasion);
 
         // Setup OnTouchListeners on all the input fields, so we can determine if the user
         // has touched or modified them. This will let us know if there are unsaved changes
         // or not, if the user tries to leave the editor without saving.
         mNameEditText.setOnTouchListener(mTouchListener);
-        mBreedEditText.setOnTouchListener(mTouchListener);
-        mWeightEditText.setOnTouchListener(mTouchListener);
-        mGenderSpinner.setOnTouchListener(mTouchListener);
+        mQuantityEditText.setOnTouchListener(mTouchListener);
+        mPriceEditText.setOnTouchListener(mTouchListener);
+        mOccasionSpinner.setOnTouchListener(mTouchListener);
 
         setupSpinner();
     }
 
     /**
-     * Setup the dropdown spinner that allows the user to select the gender of the pet.
+     * Setup the dropdown spinner that allows the user to select the type of the cake.
      */
     private void setupSpinner() {
         // Create adapter for spinner. The list options are from the String array it will use
         // the spinner will use the default layout
-        ArrayAdapter genderSpinnerAdapter = ArrayAdapter.createFromResource(this,
-                R.array.array_gender_options, android.R.layout.simple_spinner_item);
+        ArrayAdapter typeSpinnerAdapter = ArrayAdapter.createFromResource(this,
+                R.array.array_type_options, android.R.layout.simple_spinner_item);
 
         // Specify dropdown layout style - simple list view with 1 item per line
-        genderSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
+        typeSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
 
         // Apply the adapter to the spinner
-        mGenderSpinner.setAdapter(genderSpinnerAdapter);
+        mOccasionSpinner.setAdapter(typeSpinnerAdapter);
 
         // Set the integer mSelected to the constant values
-        mGenderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        mOccasionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selection = (String) parent.getItemAtPosition(position);
                 if (!TextUtils.isEmpty(selection)) {
-                    if (selection.equals(getString(R.string.gender_male))) {
-                        mGender = PetEntry.GENDER_MALE;
-                    } else if (selection.equals(getString(R.string.gender_female))) {
-                        mGender = PetEntry.GENDER_FEMALE;
+                    if (selection.equals(getString(R.string.occasion_birthday))) {
+                        mType = CakeEntry.OCCASION_BIRTHDAY;
+                    } else if (selection.equals(getString(R.string.occasion_wedding))) {
+                        mType = CakeEntry.OCCASION_WEDDING;
                     } else {
-                        mGender = PetEntry.GENDER_UNKNOWN;
+                        mType = CakeEntry.OCCASION_UNKNOWN;
                     }
                 }
             }
@@ -165,76 +165,76 @@ public class EditorActivity extends AppCompatActivity implements
             // Because AdapterView is an abstract class, onNothingSelected must be defined
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                mGender = PetEntry.GENDER_UNKNOWN;
+                mType = CakeContract.CakeEntry.OCCASION_UNKNOWN;
             }
         });
     }
 
     /**
-     * Get user input from editor and save pet into database.
+     * Get user input from editor and save cake into database.
      */
-    private void savePet() {
+    private void saveCake() {
         // Read from input fields
         // Use trim to eliminate leading or trailing white space
         String nameString = mNameEditText.getText().toString().trim();
-        String breedString = mBreedEditText.getText().toString().trim();
-        String weightString = mWeightEditText.getText().toString().trim();
+        String breedString = mQuantityEditText.getText().toString().trim();
+        String weightString = mPriceEditText.getText().toString().trim();
 
-        // Check if this is supposed to be a new pet
+        // Check if this is supposed to be a new cake
         // and check if all the fields in the editor are blank
-        if (mCurrentPetUri == null &&
+        if (mCurrentCakeUri == null &&
                 TextUtils.isEmpty(nameString) && TextUtils.isEmpty(breedString) &&
-                TextUtils.isEmpty(weightString) && mGender == PetEntry.GENDER_UNKNOWN) {
-            // Since no fields were modified, we can return early without creating a new pet.
+                TextUtils.isEmpty(weightString) && mType == CakeContract.CakeEntry.OCCASION_UNKNOWN) {
+            // Since no fields were modified, we can return early without creating a new cake.
             // No need to create ContentValues and no need to do any ContentProvider operations.
             return;
         }
 
         // Create a ContentValues object where column names are the keys,
-        // and pet attributes from the editor are the values.
+        // and cake attributes from the editor are the values.
         ContentValues values = new ContentValues();
-        values.put(PetEntry.COLUMN_PET_NAME, nameString);
-        values.put(PetEntry.COLUMN_PET_BREED, breedString);
-        values.put(PetEntry.COLUMN_PET_GENDER, mGender);
+        values.put(CakeContract.CakeEntry.COLUMN_CAKE_NAME, nameString);
+        values.put(CakeContract.CakeEntry.COLUMN_CAKE_QUANTITY, breedString);
+        values.put(CakeContract.CakeEntry.COLUMN_CAKE_OCCASION, mType);
         // If the weight is not provided by the user, don't try to parse the string into an
         // integer value. Use 0 by default.
         int weight = 0;
         if (!TextUtils.isEmpty(weightString)) {
             weight = Integer.parseInt(weightString);
         }
-        values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
+        values.put(CakeContract.CakeEntry.COLUMN_CAKE_PRICE, weight);
 
-        // Determine if this is a new or existing pet by checking if mCurrentPetUri is null or not
-        if (mCurrentPetUri == null) {
-            // This is a NEW pet, so insert a new pet into the provider,
-            // returning the content URI for the new pet.
-            Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+        // Determine if this is a new or existing cake by checking if mCurrentCakeUri is null or not
+        if (mCurrentCakeUri == null) {
+            // This is a NEW cake, so insert a new cake into the provider,
+            // returning the content URI for the new cake.
+            Uri newUri = getContentResolver().insert(CakeContract.CakeEntry.CONTENT_URI, values);
 
             // Show a toast message depending on whether or not the insertion was successful.
             if (newUri == null) {
                 // If the new content URI is null, then there was an error with insertion.
-                Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
+                Toast.makeText(this, getString(R.string.editor_insert_cake_failed),
                         Toast.LENGTH_SHORT).show();
             } else {
                 // Otherwise, the insertion was successful and we can display a toast.
-                Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
+                Toast.makeText(this, getString(R.string.editor_insert_cake_successful),
                         Toast.LENGTH_SHORT).show();
             }
         } else {
-            // Otherwise this is an EXISTING pet, so update the pet with content URI: mCurrentPetUri
+            // Otherwise this is an EXISTING cake, so update the cake with content URI: mCurrentCakeUri
             // and pass in the new ContentValues. Pass in null for the selection and selection args
-            // because mCurrentPetUri will already identify the correct row in the database that
+            // because mCurrentCakeUri will already identify the correct row in the database that
             // we want to modify.
-            int rowsAffected = getContentResolver().update(mCurrentPetUri, values, null, null);
+            int rowsAffected = getContentResolver().update(mCurrentCakeUri, values, null, null);
 
             // Show a toast message depending on whether or not the update was successful.
             if (rowsAffected == 0) {
                 // If no rows were affected, then there was an error with the update.
-                Toast.makeText(this, getString(R.string.editor_update_pet_failed),
+                Toast.makeText(this, getString(R.string.editor_update_cake_failed),
                         Toast.LENGTH_SHORT).show();
             } else {
                 // Otherwise, the update was successful and we can display a toast.
-                Toast.makeText(this, getString(R.string.editor_update_pet_successful),
+                Toast.makeText(this, getString(R.string.editor_update_cake_successful),
                         Toast.LENGTH_SHORT).show();
             }
         }
@@ -255,8 +255,8 @@ public class EditorActivity extends AppCompatActivity implements
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        // If this is a new pet, hide the "Delete" menu item.
-        if (mCurrentPetUri == null) {
+        // If this is a new cake, hide the "Delete" menu item.
+        if (mCurrentCakeUri == null) {
             MenuItem menuItem = menu.findItem(R.id.action_delete);
             menuItem.setVisible(false);
         }
@@ -269,8 +269,8 @@ public class EditorActivity extends AppCompatActivity implements
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                // Save pet to database
-                savePet();
+                // Save cake to database
+                saveCake();
                 // Exit activity
                 finish();
                 return true;
@@ -281,9 +281,9 @@ public class EditorActivity extends AppCompatActivity implements
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
-                // If the pet hasn't changed, continue with navigating up to parent activity
+                // If the cake hasn't changed, continue with navigating up to parent activity
                 // which is the {@link CatalogActivity}.
-                if (!mPetHasChanged) {
+                if (!mCakeHasChanged) {
                     NavUtils.navigateUpFromSameTask(EditorActivity.this);
                     return true;
                 }
@@ -312,8 +312,8 @@ public class EditorActivity extends AppCompatActivity implements
      */
     @Override
     public void onBackPressed() {
-        // If the pet hasn't changed, continue with handling back button press
-        if (!mPetHasChanged) {
+        // If the cake hasn't changed, continue with handling back button press
+        if (!mCakeHasChanged) {
             super.onBackPressed();
             return;
         }
@@ -335,18 +335,18 @@ public class EditorActivity extends AppCompatActivity implements
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        // Since the editor shows all pet attributes, define a projection that contains
-        // all columns from the pet table
+        // Since the editor shows all cake attributes, define a projection that contains
+        // all columns from the cake table
         String[] projection = {
-                PetEntry._ID,
-                PetEntry.COLUMN_PET_NAME,
-                PetEntry.COLUMN_PET_BREED,
-                PetEntry.COLUMN_PET_GENDER,
-                PetEntry.COLUMN_PET_WEIGHT };
+                CakeEntry._ID,
+                CakeEntry.COLUMN_CAKE_NAME,
+                CakeEntry.COLUMN_CAKE_QUANTITY,
+                CakeContract.CakeEntry.COLUMN_CAKE_OCCASION,
+                CakeContract.CakeEntry.COLUMN_CAKE_PRICE};
 
         // This loader will execute the ContentProvider's query method on a background thread
         return new CursorLoader(this,   // Parent activity context
-                mCurrentPetUri,         // Query the content URI for the current pet
+                mCurrentCakeUri,         // Query the content URI for the current cake
                 projection,             // Columns to include in the resulting Cursor
                 null,                   // No selection clause
                 null,                   // No selection arguments
@@ -363,35 +363,35 @@ public class EditorActivity extends AppCompatActivity implements
         // Proceed with moving to the first row of the cursor and reading data from it
         // (This should be the only row in the cursor)
         if (cursor.moveToFirst()) {
-            // Find the columns of pet attributes that we're interested in
-            int nameColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
-            int breedColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED);
-            int genderColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER);
-            int weightColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT);
+            // Find the columns of cake attributes that we're interested in
+            int nameColumnIndex = cursor.getColumnIndex(CakeContract.CakeEntry.COLUMN_CAKE_NAME);
+            int quantityColumnIndex = cursor.getColumnIndex(CakeContract.CakeEntry.COLUMN_CAKE_QUANTITY);
+            int typeColumnIndex = cursor.getColumnIndex(CakeContract.CakeEntry.COLUMN_CAKE_OCCASION);
+            int priceColumnIndex = cursor.getColumnIndex(CakeContract.CakeEntry.COLUMN_CAKE_PRICE);
 
             // Extract out the value from the Cursor for the given column index
             String name = cursor.getString(nameColumnIndex);
-            String breed = cursor.getString(breedColumnIndex);
-            int gender = cursor.getInt(genderColumnIndex);
-            int weight = cursor.getInt(weightColumnIndex);
+            String quantity = cursor.getString(quantityColumnIndex);
+            int type = cursor.getInt(typeColumnIndex);
+            int price = cursor.getInt(priceColumnIndex);
 
             // Update the views on the screen with the values from the database
             mNameEditText.setText(name);
-            mBreedEditText.setText(breed);
-            mWeightEditText.setText(Integer.toString(weight));
+            mQuantityEditText.setText(quantity);
+            mPriceEditText.setText(Integer.toString(price));
 
             // Gender is a dropdown spinner, so map the constant value from the database
             // into one of the dropdown options (0 is Unknown, 1 is Male, 2 is Female).
             // Then call setSelection() so that option is displayed on screen as the current selection.
-            switch (gender) {
-                case PetEntry.GENDER_MALE:
-                    mGenderSpinner.setSelection(1);
+            switch (type) {
+                case CakeContract.CakeEntry.OCCASION_BIRTHDAY:
+                    mOccasionSpinner.setSelection(1);
                     break;
-                case PetEntry.GENDER_FEMALE:
-                    mGenderSpinner.setSelection(2);
+                case CakeContract.CakeEntry.OCCASION_WEDDING:
+                    mOccasionSpinner.setSelection(2);
                     break;
                 default:
-                    mGenderSpinner.setSelection(0);
+                    mOccasionSpinner.setSelection(0);
                     break;
             }
         }
@@ -401,9 +401,9 @@ public class EditorActivity extends AppCompatActivity implements
     public void onLoaderReset(Loader<Cursor> loader) {
         // If the loader is invalidated, clear out all the data from the input fields.
         mNameEditText.setText("");
-        mBreedEditText.setText("");
-        mWeightEditText.setText("");
-        mGenderSpinner.setSelection(0); // Select "Unknown" gender
+        mQuantityEditText.setText("");
+        mPriceEditText.setText("");
+        mOccasionSpinner.setSelection(0); // Select "Unknown" type
     }
 
     /**
@@ -423,7 +423,7 @@ public class EditorActivity extends AppCompatActivity implements
         builder.setNegativeButton(R.string.keep_editing, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked the "Keep editing" button, so dismiss the dialog
-                // and continue editing the pet.
+                // and continue editing the cake.
                 if (dialog != null) {
                     dialog.dismiss();
                 }
@@ -436,7 +436,7 @@ public class EditorActivity extends AppCompatActivity implements
     }
 
     /**
-     * Prompt the user to confirm that they want to delete this pet.
+     * Prompt the user to confirm that they want to delete this cake.
      */
     private void showDeleteConfirmationDialog() {
         // Create an AlertDialog.Builder and set the message, and click listeners
@@ -445,14 +445,14 @@ public class EditorActivity extends AppCompatActivity implements
         builder.setMessage(R.string.delete_dialog_msg);
         builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                // User clicked the "Delete" button, so delete the pet.
-                deletePet();
+                // User clicked the "Delete" button, so delete the cake.
+                deleteCake();
             }
         });
         builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked the "Cancel" button, so dismiss the dialog
-                // and continue editing the pet.
+                // and continue editing the cake.
                 if (dialog != null) {
                     dialog.dismiss();
                 }
@@ -465,24 +465,24 @@ public class EditorActivity extends AppCompatActivity implements
     }
 
     /**
-     * Perform the deletion of the pet in the database.
+     * Perform the deletion of the cake in the database.
      */
-    private void deletePet() {
-        // Only perform the delete if this is an existing pet.
-        if (mCurrentPetUri != null) {
-            // Call the ContentResolver to delete the pet at the given content URI.
-            // Pass in null for the selection and selection args because the mCurrentPetUri
-            // content URI already identifies the pet that we want.
-            int rowsDeleted = getContentResolver().delete(mCurrentPetUri, null, null);
+    private void deleteCake() {
+        // Only perform the delete if this is an existing cake.
+        if (mCurrentCakeUri != null) {
+            // Call the ContentResolver to delete the cake at the given content URI.
+            // Pass in null for the selection and selection args because the mCurrentCakeUri
+            // content URI already identifies the cake that we want.
+            int rowsDeleted = getContentResolver().delete(mCurrentCakeUri, null, null);
 
             // Show a toast message depending on whether or not the delete was successful.
             if (rowsDeleted == 0) {
                 // If no rows were deleted, then there was an error with the delete.
-                Toast.makeText(this, getString(R.string.editor_delete_pet_failed),
+                Toast.makeText(this, getString(R.string.editor_delete_cake_failed),
                         Toast.LENGTH_SHORT).show();
             } else {
                 // Otherwise, the delete was successful and we can display a toast.
-                Toast.makeText(this, getString(R.string.editor_delete_pet_successful),
+                Toast.makeText(this, getString(R.string.editor_delete_cake_successful),
                         Toast.LENGTH_SHORT).show();
             }
         }

@@ -26,7 +26,7 @@
                 android:value=".CatalogActivity" />
         </activity>
         <provider
-            android:name=".data.PetProvider"
+            android:name=".data.CakeProvider"
             android:authorities="com.example.richard.inventoryapp"
             android:exported="false" />
     </application>
